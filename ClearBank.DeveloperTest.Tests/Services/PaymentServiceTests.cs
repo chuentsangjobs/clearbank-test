@@ -1,4 +1,5 @@
-﻿using AutoFixture;
+﻿using System;
+using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Xunit2;
 using ClearBank.DeveloperTest.Data;
@@ -21,6 +22,20 @@ namespace ClearBank.DeveloperTest.Services.Tests
             _fixture = new Fixture().Customize(new AutoMoqCustomization());
             _paymentValidator = _fixture.Freeze<Mock<IPaymentValidator>>();
             _accountStore = _fixture.Freeze<Mock<IAccountStore>>();
+        }
+
+        [Theory, AutoData]
+        public void GivenANullAccountNumber_ShouldThrowArgumentException(MakePaymentRequest paymentRequest)
+        {
+            // Arrange
+            var sut = _fixture.Create<PaymentService>();
+            paymentRequest.DebtorAccountNumber = null;
+
+            // Act
+            var error = Assert.Throws<ArgumentNullException>(() => sut.MakePayment(paymentRequest));
+
+            // Assert
+            error.ParamName.Should().Be(nameof(paymentRequest.DebtorAccountNumber));
         }
 
         [Theory, AutoData]
@@ -103,6 +118,21 @@ namespace ClearBank.DeveloperTest.Services.Tests
             _paymentValidator.Setup(x => x.Validate(paymentRequest, It.IsAny<Account>()))
                 .Returns(false);
 
+            var sut = _fixture.Create<PaymentService>();
+
+            // Act
+            var result = sut.MakePayment(paymentRequest);
+
+            // Asert
+            result.Success.Should().BeFalse();
+            _accountStore.Verify(x => x.UpdateAccount(It.IsAny<Account>()), Times.Never);
+        }
+
+        [Theory, AutoData]
+        public void GivenPaymentRequestAmountOfZero_ThenMakePayment_ShouldBeUnsuccessful(MakePaymentRequest paymentRequest)
+        {
+            // Arrange
+            paymentRequest.Amount = 0;
             var sut = _fixture.Create<PaymentService>();
 
             // Act

@@ -1,4 +1,5 @@
-﻿using ClearBank.DeveloperTest.Data;
+﻿using System;
+using ClearBank.DeveloperTest.Data;
 using ClearBank.DeveloperTest.Rules;
 using ClearBank.DeveloperTest.Types;
 
@@ -17,8 +18,11 @@ namespace ClearBank.DeveloperTest.Services
 
         public MakePaymentResult MakePayment(MakePaymentRequest request)
         {
+            var accountNumber = request?.DebtorAccountNumber ?? throw new ArgumentNullException(nameof(request.DebtorAccountNumber));
+
             var result = new MakePaymentResult();
-            Account account = _accountStore.GetAccount(request.DebtorAccountNumber);
+            Account account = _accountStore.GetAccount(accountNumber);
+
             if (account == null || request.Amount <= 0)
                 return result;
 
