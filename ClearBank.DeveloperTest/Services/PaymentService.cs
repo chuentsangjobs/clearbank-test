@@ -1,27 +1,27 @@
-﻿using ClearBank.DeveloperTest.Data;
+﻿using ClearBank.DeveloperTest.Rules;
 using ClearBank.DeveloperTest.Types;
-using ClearBank.DeveloperTest.Rules;
 
 namespace ClearBank.DeveloperTest.Services
 {
     public class PaymentService : IPaymentService
     {
-        private PaymentUtils _utils;
-        public PaymentService(IAccountStoreFactory accountStoreFactory)
+        private readonly IPaymentUtils _utils;
+        private readonly IPaymentValidator _paymentValidator;
+
+        public PaymentService(IPaymentUtils utils, IPaymentValidator paymentValidator)
         {
-            _utils = new PaymentUtils(accountStoreFactory);
-        }
-        public PaymentService()
-        {
-            _utils = new PaymentUtils(null);
+            _utils = utils;
+            _paymentValidator = paymentValidator;
         }
 
         public MakePaymentResult MakePayment(MakePaymentRequest request)
         {
-            Account account = _utils.GetAccount(request.DebtorAccountNumber);
-
             var result = new MakePaymentResult();
-            result.Success = PaymentValidator.Validate(request, account);
+            Account account = _utils.GetAccount(request.DebtorAccountNumber);
+            if (account == null || request.Amount <= 0)
+                return result;
+
+            result.Success = _paymentValidator.Validate(request, account);
 
             if (result.Success)
             {
@@ -31,6 +31,5 @@ namespace ClearBank.DeveloperTest.Services
 
             return result;
         }
-
     }
 }

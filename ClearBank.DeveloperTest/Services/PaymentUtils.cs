@@ -4,7 +4,7 @@ using System.Configuration;
 
 namespace ClearBank.DeveloperTest.Services
 {
-    public class PaymentUtils
+    public class PaymentUtils : IPaymentUtils
     {
         IAccountStoreFactory _accountStoreFactory;
         public PaymentUtils(IAccountStoreFactory accountStoreFactory)

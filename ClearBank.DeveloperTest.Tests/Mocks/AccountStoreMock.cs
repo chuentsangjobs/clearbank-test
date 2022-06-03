@@ -1,8 +1,5 @@
 ﻿using ClearBank.DeveloperTest.Data;
 using ClearBank.DeveloperTest.Types;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ClearBank.DeveloperTest.Tests.Mocks
 {

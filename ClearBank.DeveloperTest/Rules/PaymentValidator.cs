@@ -1,60 +1,47 @@
 ﻿using ClearBank.DeveloperTest.Types;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ClearBank.DeveloperTest.Rules
 {
-    public class PaymentValidator
+    public class PaymentValidator : IPaymentValidator
     {
-        public static bool Validate(MakePaymentRequest request, Account account)
+        public bool Validate(MakePaymentRequest request, Account account)
         {
-            bool valid = true;
-            if (request.PaymentScheme == PaymentScheme.Bacs)
+            if (account == null)
             {
-                if (account == null)
-                {
-                    valid = false;
-                }
-                else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
-                {
-                    valid = false;
-                }
+                return false;
+            }
+
+            if (request.PaymentScheme == PaymentScheme.Bacs
+                && !account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
+            {
+                return false;
             }
 
             if (request.PaymentScheme == PaymentScheme.Chaps)
             {
-                if (account == null)
+                if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
                 {
-                    valid = false;
+                    return false;
                 }
-                else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
+                if (account.Status != AccountStatus.Live)
                 {
-                    valid = false;
-                }
-                else if (account.Status != AccountStatus.Live)
-                {
-                    valid = false;
+                    return false;
                 }
             }
 
             if (request.PaymentScheme == PaymentScheme.FasterPayments)
             {
-                if (account == null)
+                if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
                 {
-                    valid = false;
+                    return false;
                 }
-                else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
+                if (account.Balance < request.Amount)
                 {
-                    valid = false;
-                }
-                else if (account.Balance < request.Amount)
-                {
-                    valid = false;
+                    return false;
                 }
             }
 
-            return valid;
+            return true;
         }
     }
 }
