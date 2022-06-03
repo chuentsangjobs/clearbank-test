@@ -1,6 +1,7 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Xunit2;
+using ClearBank.DeveloperTest.Data;
 using ClearBank.DeveloperTest.Rules;
 using ClearBank.DeveloperTest.Types;
 using FluentAssertions;
@@ -13,20 +14,20 @@ namespace ClearBank.DeveloperTest.Services.Tests
     {
         private readonly IFixture _fixture;
         private readonly Mock<IPaymentValidator> _paymentValidator;
-        private readonly Mock<IPaymentUtils> _paymentUtils;
+        private readonly Mock<IAccountStore> _accountStore;
 
         public PaymentServiceTests()
         {
             _fixture = new Fixture().Customize(new AutoMoqCustomization());
             _paymentValidator = _fixture.Freeze<Mock<IPaymentValidator>>();
-            _paymentUtils = _fixture.Freeze<Mock<IPaymentUtils>>();
+            _accountStore = _fixture.Freeze<Mock<IAccountStore>>();
         }
 
         [Theory, AutoData]
         public void GivenAnUnspecifiedAccount_ThenMakePayment_ShouldBeUnsuccessful(MakePaymentRequest paymentRequest)
         {
             // Arrange
-            _paymentUtils.Setup(x => x.GetAccount(paymentRequest.DebtorAccountNumber))
+            _accountStore.Setup(x => x.GetAccount(paymentRequest.DebtorAccountNumber))
                 .Returns<Account>(null);
 
             var sut = _fixture.Create<PaymentService>();
@@ -36,7 +37,7 @@ namespace ClearBank.DeveloperTest.Services.Tests
 
             // Asert
             result.Success.Should().BeFalse();
-            _paymentUtils.Verify(x => x.UpdateAccount(It.IsAny<Account>()), Times.Never);
+            _accountStore.Verify(x => x.UpdateAccount(It.IsAny<Account>()), Times.Never);
         }
 
         [Theory, AutoData]
@@ -52,7 +53,7 @@ namespace ClearBank.DeveloperTest.Services.Tests
 
             // Asert
             result.Success.Should().BeFalse();
-            _paymentUtils.Verify(x => x.UpdateAccount(It.IsAny<Account>()), Times.Never);
+            _accountStore.Verify(x => x.UpdateAccount(It.IsAny<Account>()), Times.Never);
         }
 
         [Theory, AutoData]
@@ -69,7 +70,7 @@ namespace ClearBank.DeveloperTest.Services.Tests
 
             // Asert
             result.Success.Should().BeTrue();
-            _paymentUtils.Verify(x => x.UpdateAccount(It.IsAny<Account>()));
+            _accountStore.Verify(x => x.UpdateAccount(It.IsAny<Account>()));
         }
 
         [Theory, AutoData]
@@ -78,7 +79,7 @@ namespace ClearBank.DeveloperTest.Services.Tests
             // Arrange
             paymentRequest.Amount = 100;
             account.Balance = 300;
-            _paymentUtils.Setup(x => x.GetAccount(paymentRequest.DebtorAccountNumber))
+            _accountStore.Setup(x => x.GetAccount(paymentRequest.DebtorAccountNumber))
                 .Returns(account);
             _paymentValidator.Setup(x => x.Validate(paymentRequest, It.IsAny<Account>()))
                 .Returns(true);
@@ -90,7 +91,7 @@ namespace ClearBank.DeveloperTest.Services.Tests
 
             // Asert
             result.Success.Should().BeTrue();
-            _paymentUtils.Verify(x => x.UpdateAccount(It.Is<Account>(x=> 
+            _accountStore.Verify(x => x.UpdateAccount(It.Is<Account>(x=> 
                 x.AccountNumber.Equals(account.AccountNumber) 
                 && x.Balance.Equals(200))));
         }
@@ -109,7 +110,7 @@ namespace ClearBank.DeveloperTest.Services.Tests
 
             // Asert
             result.Success.Should().BeFalse();
-            _paymentUtils.Verify(x => x.UpdateAccount(It.IsAny<Account>()), Times.Never);
+            _accountStore.Verify(x => x.UpdateAccount(It.IsAny<Account>()), Times.Never);
         }
     }
 }

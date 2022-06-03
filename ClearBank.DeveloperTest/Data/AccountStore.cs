@@ -4,10 +4,10 @@ using System.Configuration;
 
 namespace ClearBank.DeveloperTest.Services
 {
-    public class PaymentUtils : IPaymentUtils
+    public class AccountStore : IAccountStore
     {
         IAccountStoreFactory _accountStoreFactory;
-        public PaymentUtils(IAccountStoreFactory accountStoreFactory)
+        public AccountStore(IAccountStoreFactory accountStoreFactory)
         {
             _accountStoreFactory = accountStoreFactory;
         }
