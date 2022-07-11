@@ -138,7 +138,7 @@ namespace ClearBank.DeveloperTest.Services.Tests
             // Act
             var result = sut.MakePayment(paymentRequest);
 
-            // Asert
+            // Assert
             result.Success.Should().BeFalse();
             _accountStore.Verify(x => x.UpdateAccount(It.IsAny<Account>()), Times.Never);
         }
